@@ -1,0 +1,52 @@
+service: mermaid-converter
+
+frameworkVersion: '3'
+
+provider:
+  name: aws
+  runtime: python3.12
+  region: us-east-1
+  memorySize: 512
+  timeout: 60
+  environment:
+    PYTHONUNBUFFERED: 1
+
+functions:
+  mermaid:
+    handler: serverless_handler.handler
+    events:
+      - http:
+          path: mermaid/convert
+          method: post
+          cors: true
+      - http:
+          path: mermaid/convert
+          method: options
+          cors: true
+    layers:
+      - arn:aws:lambda:${aws:region}:${aws:accountId}:layer:mermaid-converter-deps:1
+
+plugins:
+  - serverless-python-requirements
+
+custom:
+  pythonRequirements:
+    dockerizePip: true
+    slim: true
+    strip: false
+    useDownloadCache: true
+    useStaticCache: true
+    slim: true
+    layer: true
+
+package:
+  patterns:
+    - '!.git/**'
+    - '!.gitignore'
+    - '!node_modules/**'
+    - '!.venv/**'
+    - '!venv/**'
+    - '!__pycache__/**'
+    - '!*.pyc'
+    - 'serverless_handler.py'
+    - 'requirements.txt'

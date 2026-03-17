@@ -123,16 +123,21 @@ def _get_format(encoded_diagram: str, output_format: str, theme: str,
     try:
         url = _build_api_url(encoded_diagram, output_format, theme, background_color, width, height)
         
-        response = requests.get(url, timeout=30)
+        logger.info(f"Fetching {output_format} from mermaid.ink with 90s timeout...")
+        response = requests.get(url, timeout=90)
         
         if response.status_code == 200:
+            logger.info(f"Successfully fetched {output_format}: {len(response.content)} bytes")
             return response.content
         else:
-            logger.error(f"Failed to fetch {output_format}: HTTP {response.status_code}")
+            logger.error(f"Failed to fetch {output_format}: HTTP {response.status_code} - {response.text[:200]}")
             return None
                 
+    except requests.Timeout:
+        logger.error(f"Timeout fetching {output_format} after 90s")
+        return None
     except Exception as e:
-        logger.error(f"Error fetching {output_format}: {str(e)}")
+        logger.error(f"Error fetching {output_format}: {str(e)}", exc_info=True)
         return None
 
 
